@@ -46,6 +46,7 @@ namespace loginRegC.Controllers
                     PasswordHasher<User> Hasher = new PasswordHasher<User>();
                     newUser.Password = Hasher.HashPassword(newUser, newUser.Password);
                     dbContext.Add(newUser);
+                    HttpContext.Session.SetInt32("Id", newUser.UserId);
                     dbContext.SaveChanges();
                     return RedirectToAction("Show");
                 }
@@ -56,6 +57,11 @@ namespace loginRegC.Controllers
         [HttpGet("show")]
         public IActionResult Show()
         {
+            if (HttpContext.Session.GetInt32("Id") == null)
+            {
+                ModelState.AddModelError("Email", "Please log in or register!");
+                return View("Index");
+            }
             return View("Show");
         }
 
@@ -87,11 +93,19 @@ namespace loginRegC.Controllers
                 }
                 else
                 {
+                    HttpContext.Session.SetInt32("Id", confirmUser.UserId);
                     return View("Show");
                 }
             }
             return View("Index");
 
+        }
+
+        [HttpGet("logout")]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Index");
         }
 
     }
